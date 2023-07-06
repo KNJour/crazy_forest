@@ -46,11 +46,63 @@ def area_generator():
     return area
 
 def event_generator(danger, gold, monster, name):
+    roll = random.randint(1, 12)
+    gold_loss = False
+    gold_loss_value = 0
+    if random.randint(1, 9) == 1:
+        gold_loss = True
+        gold_loss_value = random.randint(1, 25)
+        request.session['gold'] -= gold_loss_value
 
+    if roll <= danger:
+        color = 'red'
+        lost_health = random.randint(3, 35)
+        event_format = random.randint(1, 5)
+        if event_format == 1 or event_format == 2:
+            message = "You were " + random.choice(attack_verbs) + " by a " + monster + " in " + name + " and lost " + str(lost_health) + " health!"
+        elif event_format == 3:
+            lost_health = round(lost_health / 2)
+            message = "You were " + random.choice(attack_verbs) + " by a " + monster + " in " + name + " but were " + random.choice(good_verbs) + " by a " + random.choice(adjective_list) + " " + random.choice(monster_list) + " and only lost " + str(lost_health) + " health!"
+        elif event_format == 4:
+            message = "while exploring " + name + " you were " + random.choice(attack_verbs) + " by a " + monster + " and lost " + str(lost_health) + " health!"
+        if gold_loss:
+            message += " You also lost " + str(gold_loss_value) + " gold!"
+    else:
+        extra_gold = False
+        extra_gold_value = 0
+        if random.randint(1, 8) == 1:
+            gained_health = random.randint(5, 25)
+            request.session['health'] += gained_health
+            if request.session['health'] > 100:
+                request.session['health'] = 100
+        if random.randint(1, 8) == 1:
+            extra_gold = True
+            extra_gold_value = random.randint(1, 50)
+        color = 'green'
+        event_format = random.randint(1, 5)
+        if event_format == 1 or event_format == 5:
+            message = "You found " + str(gold) + " gold in " + name + "!"
+        if event_format == 2:
+            message = "While exploring " + name + " you found " + str(gold) + " gold!"
+        if event_format == 3:
+            message = "while exploring " + name + " you encountered a " + random.choice(adjective_list) + " " + monster + "! It fed you and you gained " + str(gained_health) + " health! You also found " + str(gold) + " gold!"
+        if event_format == 4:
+            gold = round(gold / 2)
+            message = "You found " + str(gold) + " gold! But then you encountered a group of" + random.choice(adjective_list) + " " + monster + "s who took half of it!"
+        if extra_gold: 
+            message += " Afterwards you also found " + str(extra_gold_value) + " gold!"
+            request.session['gold'] += extra_gold_value
+        request.session['gold'] += gold
+        event = {
+            'message': message,
+            'color' : color
+        }
+        return event
 intro = {
-            'message': "You Find Yourself Trapped in the Random Forest. Pay the Goblin at Camp 500 gold to escape or find the key hidden in the forest! Numbers display the Danger Level of the area, the higher the number the more likely you are to be attacked by a monster! Rest at camp to give the goblin your gold and recover health, but beware, you may be attacked!",
+            'message': "You Find Yourself Trapped in the Crazy Forest. Pay the Goblin at Camp 500 gold to escape or find the key hidden in the forest! Numbers display the Danger Level of the area, the higher the number the more likely you are to be attacked by a monster! Rest at camp to give the goblin your gold and recover health, but beware, you may be attacked!",
             'color': "white"
         }
+
 event_log = [intro]
 
 def index(request):
@@ -78,18 +130,19 @@ def index(request):
         'statuscolor': status,
         'event_log': event_log,
     }
+
     print(data['statuscolor'])
     return render(request, 'index.html', data)
 
 def search(request):
     direction = request.POST['direction']
-    roll = random.randint(1, 12)
-    if roll <= request.session[direction]['danger']:
-        request.session['event'] = {
-            'message': "You are attacked by a " + request.session[direction]['monster'] + "!",
-            'color': "red"
-        }
-        request.session['health'] -= 10
+    danger = request.session[direction]['danger']
+    gold = request.session[direction]['gold']
+    monster = request.session[direction]['monster']
+    name = request.session[direction]['name']
+
+    request.session['event'] = event_generator(danger, gold, monster, name)
+
     return redirect('/')
 
 def camp(request):
