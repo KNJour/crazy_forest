@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Random Forest</title>
+    {%load static%}
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
+        <!-- css -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"> 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+  </head>
+  <body>
+                {% comment %} {% csrf_token %} {% endcomment %}
+    <div class="container main-contain">
+        <div class="row">
+            <div class="col-3 float-left">
+                <h4>You are Trapped in the forest.</h4>
+                <a href="/restart" class="btn btn-dark btn-outline-dark text-light">Restart</a>
+            </div>
+            <div class="col-6"></div>
+            <div class="col-3 float-right">
+                <h3 class="health">Health: <span style="color:{{statuscolor}};">{{request.session.health}}</span></h3>
+                <h4>Gold: <span class="gold">{{request.session.gold}}</span></h4>
+            </div>
+        </div>
+        <!-- TOP ROW -->
+        <div class="row">
+            <div class="col-4"></div>
+            <div class="col-4 text-center">
+                <div class="info-wrapper carousel-caption">
+                    <h3 class="info" style="color:{{request.session.left.color}}">Danger: {{request.session.left.danger}}</h3>
+                    <h3 class="gold info">Gold: {{request.session.left.gold}}</h3>
+                </div>
+                <form action="/search" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="direction" value="up">
+                    <input type="image" name="submit" class="img direction-img"src="{% static 'img/forest.jpg' %}"/>
+                </form>
+                <h6>{{request.session.up.name}}</h6>
+            </div>
+            <div class="col-4"></div>
+        </div>
+        <!-- MIDDLE ROW -->
+        <div class="row mt-1">
+            <div class="col-4 text-center">
+                <div class="info-wrapper carousel-caption">
+                    <h3 class="info" style="color:{{request.session.left.color}}">Danger: {{request.session.left.danger}}</h3>
+                    <h3 class="gold info">Gold: {{request.session.left.gold}}</h3>
+                </div>
+                <form action="/search" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="direction" value="left">
+                    <input type="image" name="submit" class="img direction-img"src="{% static 'img/forest.jpg' %}"/>
+                </form>
+                <h6>{{request.session.left.name}}</h6>
+            </div>
+            <div class="col-4 text-center">
+                <div class="info-wrapper carousel-caption">
+                    <h3 class="info" style="color:whitesmoke"> 50% chance to heal</h3>
+                    <h3 class="gold info">Give 500 gold to goblin</h3>
+                </div>
+                <a href="/camp"><img class="img direction-img" src="{% static 'img/camp.png' %}" alt="Go to Camp"></a>
+                <h6>Rest At Camp</h6>
+            </div>
+            <div class="col-4 text-center">
+                <div class="info-wrapper carousel-caption">
+                    <h3 class="info" style="color:{{request.session.right.color}}">Danger: {{request.session.right.danger}}</h3>
+                    <h3 class="gold info">Gold: {{request.session.right.gold}}</h3>
+                </div>
+                <form action="/search" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="direction" value="right">
+                    <input type="image" name="submit" class="img direction-img"src="{% static 'img/forest.jpg' %}"/>
+                </form>
+                <h6>{{request.session.right.name}}</h6>
+            </div>
+        </div>
+        <!-- BOTTOM ROW -->
+        <div class="row">
+            <div class="col-4"></div>
+            <div class="col-4 text-center">
+                <div class="info-wrapper carousel-caption">
+                    <h3 class="info" style="color:{{request.session.down.color}}">Danger: {{request.session.down.danger}}</h3>
+                    <h3 class="gold info">Gold: {{request.session.down.gold}}</h3>
+                </div>
+                <form action="/search" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="direction" value="down">
+                    <input type="image" name="submit" class="img direction-img"src="{% static 'img/forest.jpg' %}"/>
+                </form>
+                <h6>{{request.session.down.name}}</h6>
+            </div>
+            <div class="col-4"></div>
+        </div>
+        <!-- TEXT DISPLAY -->
+        <div class="row d-flex justify-content-center bg-dark mt-3">
+
+            <div class="col-11 activity-log">
+                <ul>
+                    {% for event in event_log reversed%}
+                    <li style="color:{{event.color}};">{{event.message}}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+  </body>
+</html>
