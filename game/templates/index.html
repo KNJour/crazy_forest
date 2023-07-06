@@ -32,8 +32,8 @@
             <div class="col-4"></div>
             <div class="col-4 text-center">
                 <div class="info-wrapper carousel-caption">
-                    <h3 class="info" style="color:{{request.session.left.color}}">Danger: {{request.session.left.danger}}</h3>
-                    <h3 class="gold info">Gold: {{request.session.left.gold}}</h3>
+                    <h3 class="info" style="color:{{request.session.up.color}}">Danger: {{request.session.up.danger}}</h3>
+                    <h3 class="gold info">Gold: {{request.session.up.gold}}</h3>
                 </div>
                 <form action="/search" method="post">
                     {% csrf_token %}
@@ -97,14 +97,12 @@
             <div class="col-4"></div>
         </div>
         <!-- TEXT DISPLAY -->
-        <div class="row d-flex justify-content-center bg-dark mt-3">
+        <div class="row d-flex justify-content-center mt-3">
 
             <div class="col-11 activity-log">
-                <ul>
                     {% for event in event_log reversed%}
-                    <li style="color:{{event.color}};">{{event.message}}</li>
+                    <p style="color:{{event.color}};" class="event-text">{{event.message}}</p>
                     {% endfor %}
-                </ul>
             </div>
         </div>
     </div>
