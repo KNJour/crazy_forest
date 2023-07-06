@@ -48,33 +48,30 @@ def area_generator():
 def event_generator(danger, gold, monster, name):
     roll = random.randint(1, 12)
     gold_loss = False
-    gold_loss_value = 0
+    gold_change = 0
     if random.randint(1, 9) == 1:
         gold_loss = True
-        gold_loss_value = random.randint(1, 25)
-        request.session['gold'] -= gold_loss_value
+        gold_change = -random.randint(1, 25)
+        gold_change = gold_change
 
     if roll <= danger:
         color = 'red'
-        lost_health = random.randint(3, 35)
+        health_change = random.randint(3, 35)
         event_format = random.randint(1, 5)
         if event_format == 1 or event_format == 2:
-            message = "You were " + random.choice(attack_verbs) + " by a " + monster + " in " + name + " and lost " + str(lost_health) + " health!"
+            message = "You were " + random.choice(attack_verbs) + " by a " + monster + " in " + name + " and lost " + str(health_change) + " health!"
         elif event_format == 3:
-            lost_health = round(lost_health / 2)
-            message = "You were " + random.choice(attack_verbs) + " by a " + monster + " in " + name + " but were " + random.choice(good_verbs) + " by a " + random.choice(adjective_list) + " " + random.choice(monster_list) + " and only lost " + str(lost_health) + " health!"
+            health_change = round(health_change / 2)
+            message = "You were " + random.choice(attack_verbs) + " by a " + monster + " in " + name + " but were " + random.choice(good_verbs) + " by a " + random.choice(adjective_list) + " " + random.choice(monster_list) + " and only lost " + str(health_change) + " health!"
         elif event_format == 4:
-            message = "while exploring " + name + " you were " + random.choice(attack_verbs) + " by a " + monster + " and lost " + str(lost_health) + " health!"
+            message = "while exploring " + name + " you were " + random.choice(attack_verbs) + " by a " + monster + " and lost " + str(health_change) + " health!"
         if gold_loss:
-            message += " You also lost " + str(gold_loss_value) + " gold!"
+            message += " You also lost " + str(gold_change) + " gold!"
+        health_change = -health_change
     else:
         extra_gold = False
         extra_gold_value = 0
-        if random.randint(1, 8) == 1:
-            gained_health = random.randint(5, 25)
-            request.session['health'] += gained_health
-            if request.session['health'] > 100:
-                request.session['health'] = 100
+        health_change = 0
         if random.randint(1, 8) == 1:
             extra_gold = True
             extra_gold_value = random.randint(1, 50)
@@ -85,19 +82,23 @@ def event_generator(danger, gold, monster, name):
         if event_format == 2:
             message = "While exploring " + name + " you found " + str(gold) + " gold!"
         if event_format == 3:
+            gained_health = random.randint(5, 15)
+            health_change = gained_health
             message = "while exploring " + name + " you encountered a " + random.choice(adjective_list) + " " + monster + "! It fed you and you gained " + str(gained_health) + " health! You also found " + str(gold) + " gold!"
         if event_format == 4:
             gold = round(gold / 2)
             message = "You found " + str(gold) + " gold! But then you encountered a group of" + random.choice(adjective_list) + " " + monster + "s who took half of it!"
+        gold_change = gold
         if extra_gold: 
             message += " Afterwards you also found " + str(extra_gold_value) + " gold!"
-            request.session['gold'] += extra_gold_value
-        request.session['gold'] += gold
-        event = {
-            'message': message,
-            'color' : color
+            gold_change += extra_gold_value
+    data = {
+        'message': message,
+        'color' : color,
+        'gold_change': gold_change,
+        'health_change': health_change
         }
-        return event
+    return data
 intro = {
             'message': "You Find Yourself Trapped in the Crazy Forest. Pay the Goblin at Camp 500 gold to escape or find the key hidden in the forest! Numbers display the Danger Level of the area, the higher the number the more likely you are to be attacked by a monster! Rest at camp to give the goblin your gold and recover health, but beware, you may be attacked!",
             'color': "white"
@@ -140,8 +141,12 @@ def search(request):
     gold = request.session[direction]['gold']
     monster = request.session[direction]['monster']
     name = request.session[direction]['name']
-
-    request.session['event'] = event_generator(danger, gold, monster, name)
+    new_event = event_generator(danger, gold, monster, name)
+    request.session['event'] = new_event
+    request.session['gold'] += new_event['gold_change']
+    request.session['health'] += new_event['health_change']
+    if request.session['health'] > 100:
+        request.session['health'] = 100
 
     return redirect('/')
 
